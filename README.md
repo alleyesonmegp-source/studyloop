@@ -9,6 +9,12 @@ next useful review.
 
 Built from scratch during OpenAI Build Week with Codex and GPT-5.6.
 
+## Android preview
+
+| Privacy-first onboarding | Explainable adaptive home |
+| --- | --- |
+| ![StudyLoop onboarding](docs/screenshots/onboarding-top.png) | ![StudyLoop adaptive home](docs/screenshots/adaptive-home.png) |
+
 ## Why it is different
 
 - **Explainable adaptation:** the queue combines mastery, accuracy, review due

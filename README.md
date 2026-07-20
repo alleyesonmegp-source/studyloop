@@ -2,10 +2,10 @@
 
 **Focus. Recall. Adapt. Repeat.**
 
-StudyLoop is a privacy-first adaptive learning app that turns every study
-session into a measurable loop. Instead of counting screen time, it estimates
-what is becoming stable, explains why a topic should return, and schedules the
-next useful review.
+StudyLoop is a privacy-first adaptive learning app that turns a learner's own
+notes and exam date into a daily mission. Instead of counting screen time, it
+measures recall, brings mistakes back, estimates exam readiness, and explains
+the next useful review.
 
 Built from scratch during OpenAI Build Week with Codex and GPT-5.6.
 
@@ -19,6 +19,12 @@ Built from scratch during OpenAI Build Week with Codex and GPT-5.6.
 
 - **Explainable adaptation:** the queue combines mastery, accuracy, review due
   time, and memory decay. The student can always see why a topic comes next.
+- **Notes to mission:** a topic, exam date, and pasted study material become a
+  focused micro-lesson and a grounded recall challenge.
+- **Mistake rescue queue:** missed questions are persisted locally and return
+  at the start of the next mission until answered correctly.
+- **Exam readiness:** an explicitly labeled estimate combines recall accuracy,
+  subject mastery, completed missions, and unresolved mistakes.
 - **Retrieval before repetition:** each focus session ends with a short recall
   check. Answers update mastery and the next review interval.
 - **GPT-5.6 Coach:** GPT-5.6 Sol turns a learner's topic and optional notes into
@@ -32,11 +38,15 @@ Built from scratch during OpenAI Build Week with Codex and GPT-5.6.
 ## Product flow
 
 1. The learner chooses a grade level and focus duration.
-2. StudyLoop ranks subjects by learning need.
-3. A distraction-free focus timer starts.
-4. Three recall questions measure what was retained.
-5. Mastery, accuracy, due date, streak, and history update locally.
-6. The next loop is re-ranked and its reason is shown.
+2. They add a subject, exam date, topic, and their own notes.
+3. StudyLoop creates today's grounded micro-mission.
+4. A distraction-free focus timer starts.
+5. Three recall questions measure what was retained.
+6. Missed questions enter the rescue queue and return next time.
+7. Readiness, mastery, XP, streak, and history update locally.
+
+The goal screen includes a complete photosynthesis example so judges can test
+the grounded offline flow without an API key.
 
 ## Architecture
 

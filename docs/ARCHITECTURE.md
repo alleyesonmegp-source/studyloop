@@ -2,9 +2,10 @@
 
 ## Product thesis
 
-Most study timers optimize for time spent. StudyLoop optimizes for the next
-useful learning action. It closes the loop between attention, retrieval
-practice, evidence, and scheduling.
+Most study timers optimize for time spent. StudyLoop turns a real exam goal and
+the learner's own material into the next useful learning action. It closes the
+loop between source material, attention, retrieval practice, evidence, and
+scheduling.
 
 ## Adaptive engine
 
@@ -21,10 +22,22 @@ Correct answers increase mastery and schedule a longer review interval.
 Incorrect answers slightly reduce mastery and schedule a near-term retry. This
 is not presented as a psychometric diagnosis; it is a transparent learning aid.
 
+At goal level, missed questions are stored in a bounded rescue queue. The next
+mission places these questions before new material; a correct answer removes
+them. The readiness estimate is explicitly presented as an estimate:
+
+```text
+readiness =
+  recall accuracy × 0.55
+  + subject mastery × 0.25
+  + completed-practice factor × 0.20
+  - unresolved-mistake penalty
+```
+
 ## GPT-5.6 role
 
 GPT-5.6 Sol is used where generative intelligence adds real value: converting a
-learner's chosen topic and optional notes into a concise micro-lesson and three
+learner's exam topic and notes into a grounded concise micro-lesson and three
 retrieval questions. Pydantic Structured Outputs enforce the app contract:
 
 - exactly three questions;

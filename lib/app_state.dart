@@ -11,6 +11,7 @@ class AppState extends ChangeNotifier {
 
   bool ready = false;
   LearnerProfile? profile;
+  LearningGoal? activeGoal;
   final Map<String, SubjectProgress> subjects = {};
   final List<StudySession> sessions = [];
 
@@ -31,6 +32,14 @@ class AppState extends ChangeNotifier {
 
   int get totalMinutes =>
       sessions.fold(0, (total, session) => total + session.minutes);
+
+  int get xp => sessions.fold(
+    0,
+    (total, session) => total + 40 + (session.score * 60).round(),
+  );
+
+  int get level => xp ~/ 300 + 1;
+  int get xpInLevel => xp % 300;
 
   int get streak {
     if (sessions.isEmpty) return 0;
@@ -65,6 +74,11 @@ class AppState extends ChangeNotifier {
         if (json['profile'] != null) {
           profile = LearnerProfile.fromJson(
             json['profile'] as Map<String, dynamic>,
+          );
+        }
+        if (json['activeGoal'] != null) {
+          activeGoal = LearningGoal.fromJson(
+            json['activeGoal'] as Map<String, dynamic>,
           );
         }
         for (final item in (json['subjects'] as List? ?? const [])) {
@@ -152,8 +166,79 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> saveGoal(LearningGoal goal) async {
+    activeGoal = goal;
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> removeGoal() async {
+    activeGoal = null;
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> recordGoalSession({
+    required List<bool> answers,
+    required List<QuizQuestion> questions,
+  }) async {
+    final goal = activeGoal;
+    if (goal == null || answers.isEmpty) return;
+    final current = subjects[goal.subjectId];
+    if (current != null) {
+      var updated = current;
+      for (final answer in answers) {
+        updated = AdaptiveEngine.updateProgress(updated, correct: answer);
+      }
+      subjects[goal.subjectId] = updated;
+    }
+    final correct = answers.where((answer) => answer).length;
+    final retryById = {
+      for (final question in goal.retryQuestions) question.id: question,
+    };
+    for (var index = 0; index < answers.length; index++) {
+      final question = questions[index];
+      if (answers[index]) {
+        retryById.remove(question.id);
+      } else {
+        retryById[question.id] = question;
+      }
+    }
+    activeGoal = goal.copyWith(
+      completedLoops: goal.completedLoops + 1,
+      correctAnswers: goal.correctAnswers + correct,
+      totalAnswers: goal.totalAnswers + answers.length,
+      retryQuestions: retryById.values.take(6).toList(),
+    );
+    sessions.insert(
+      0,
+      StudySession(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        subjectId: goal.subjectId,
+        minutes: profile?.focusMinutes ?? 10,
+        score: correct / answers.length,
+        completedAt: DateTime.now(),
+      ),
+    );
+    await _save();
+    notifyListeners();
+  }
+
+  double goalReadiness(LearningGoal goal) {
+    final subjectMastery = subjects[goal.subjectId]?.mastery ?? .35;
+    if (goal.totalAnswers == 0) return subjectMastery * .45;
+    final practice = (goal.completedLoops / 5).clamp(0.0, 1.0);
+    final retryPenalty = (goal.retryQuestions.length * .04).clamp(0.0, .16);
+    return (goal.accuracy * .55 +
+            subjectMastery * .25 +
+            practice * .20 -
+            retryPenalty)
+        .clamp(0.0, 1.0);
+  }
+
   Future<void> reset() async {
     profile = null;
+    activeGoal = null;
     subjects
       ..clear()
       ..addEntries(
@@ -173,6 +258,7 @@ class AppState extends ChangeNotifier {
       _storageKey,
       jsonEncode({
         'profile': profile?.toJson(),
+        'activeGoal': activeGoal?.toJson(),
         'subjects': subjects.values.map((value) => value.toJson()).toList(),
         'sessions': sessions.take(60).map((value) => value.toJson()).toList(),
       }),

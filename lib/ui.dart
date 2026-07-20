@@ -231,6 +231,82 @@ class TodayScreen extends StatelessWidget {
   const TodayScreen({super.key, required this.state});
   final AppState state;
 
+  Future<void> _editGoal(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => GoalSetupScreen(state: state)),
+    );
+  }
+
+  Future<void> _startGoal(BuildContext context, LearningGoal goal) async {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const _PreparingMissionDialog(),
+      ),
+    );
+    StudyPack pack;
+    try {
+      pack = await AiCoachService().createPack(
+        topic: goal.topic,
+        notes: goal.material,
+        grade: state.profile!.grade,
+        subjectId: goal.subjectId,
+      );
+    } catch (_) {
+      pack = AiCoachService().offlinePack(
+        topic: goal.topic,
+        notes: goal.material,
+        subjectId: goal.subjectId,
+      );
+    }
+    if (goal.retryQuestions.isNotEmpty) {
+      final merged = <QuizQuestion>[
+        ...goal.retryQuestions,
+        ...pack.questions.where(
+          (question) =>
+              !goal.retryQuestions.any((retry) => retry.id == question.id),
+        ),
+      ].take(3).toList();
+      pack = StudyPack(
+        title: pack.title,
+        microLesson: pack.microLesson,
+        whyItMatters:
+            'Prima recuperiamo gli errori precedenti, poi aggiungiamo un '
+            'nuovo richiamo dai tuoi appunti.',
+        questions: merged,
+        aiGenerated: pack.aiGenerated,
+      );
+    }
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    final subject = state.subjects[goal.subjectId]!;
+    final answers = await Navigator.of(context).push<List<bool>>(
+      MaterialPageRoute(
+        builder: (_) => FocusScreen(
+          subject: subject,
+          minutes: state.profile!.focusMinutes,
+          questions: pack.questions,
+          missionTitle: goal.topic,
+          microLesson: pack.microLesson,
+          grounded: goal.material.trim().isNotEmpty,
+        ),
+      ),
+    );
+    if (answers == null || answers.isEmpty) return;
+    await state.recordGoalSession(answers: answers, questions: pack.questions);
+    if (!context.mounted) return;
+    final score = answers.where((answer) => answer).length;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _MissionResultDialog(
+        score: score,
+        total: answers.length,
+        readiness: state.goalReadiness(state.activeGoal!),
+      ),
+    );
+  }
+
   Future<void> _startFocus(
     BuildContext context,
     SubjectProgress subject,
@@ -298,12 +374,25 @@ class TodayScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 22),
-        _HeroFocusCard(
-          subject: primary,
-          minutes: state.profile!.focusMinutes,
-          reason: AdaptiveEngine.reasonFor(primary),
-          onStart: () => _startFocus(context, primary),
-        ),
+        if (state.activeGoal == null)
+          _EmptyGoalCard(onCreate: () => _editGoal(context))
+        else
+          _GoalMissionCard(
+            goal: state.activeGoal!,
+            subject: state.subjects[state.activeGoal!.subjectId]!,
+            readiness: state.goalReadiness(state.activeGoal!),
+            onStart: () => _startGoal(context, state.activeGoal!),
+            onEdit: () => _editGoal(context),
+          ),
+        if (state.activeGoal == null) ...[
+          const SizedBox(height: 22),
+          _HeroFocusCard(
+            subject: primary,
+            minutes: state.profile!.focusMinutes,
+            reason: AdaptiveEngine.reasonFor(primary),
+            onStart: () => _startFocus(context, primary),
+          ),
+        ],
         const SizedBox(height: 22),
         Row(
           children: [
@@ -354,6 +443,375 @@ class TodayScreen extends StatelessWidget {
       ],
     );
   }
+}
+
+class _EmptyGoalCard extends StatelessWidget {
+  const _EmptyGoalCard({required this.onCreate});
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: const Color(0xFF17153B),
+      borderRadius: BorderRadius.circular(26),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.flag_outlined, color: Color(0xFFFFD56A)),
+            SizedBox(width: 8),
+            Text(
+              'NUOVO • MISSIONE VERIFICA',
+              style: TextStyle(
+                color: Color(0xFFFFD56A),
+                fontSize: 11,
+                letterSpacing: .8,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        const Text(
+          'Dai tuoi appunti a un piano che si adatta.',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            height: 1.12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Incolla il materiale, scegli la data e affronta una breve missione '
+          'ogni giorno. Gli errori decidono cosa ritorna.',
+          style: TextStyle(color: Color(0xFFC7C6DE), height: 1.4),
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: onCreate,
+          icon: const Icon(Icons.add),
+          label: const Text('Crea obiettivo verifica'),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF7C7DF4),
+            minimumSize: const Size.fromHeight(50),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _GoalMissionCard extends StatelessWidget {
+  const _GoalMissionCard({
+    required this.goal,
+    required this.subject,
+    required this.readiness,
+    required this.onStart,
+    required this.onEdit,
+  });
+
+  final LearningGoal goal;
+  final SubjectProgress subject;
+  final double readiness;
+  final VoidCallback onStart;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (readiness * 100).round();
+    final urgency = goal.daysRemaining == 0
+        ? 'Verifica oggi'
+        : '${goal.daysRemaining} giorni alla verifica';
+    final message = goal.completedLoops == 0
+        ? 'Prima missione: costruiamo la base.'
+        : goal.accuracy < .67
+        ? 'Gli errori di ieri diventano il richiamo di oggi.'
+        : 'Sei in crescita: consolida prima che il ricordo cali.';
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF17153B), Color(0xFF3730A3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x3317153B),
+            blurRadius: 24,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  urgency.toUpperCase(),
+                  style: const TextStyle(
+                    color: Color(0xFFFFD56A),
+                    fontSize: 11,
+                    letterSpacing: .8,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: onEdit,
+                tooltip: 'Modifica obiettivo',
+                visualDensity: VisualDensity.compact,
+                color: const Color(0xFFC7D2FE),
+                icon: const Icon(Icons.edit_outlined, size: 20),
+              ),
+            ],
+          ),
+          Text(
+            goal.topic,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 27,
+              height: 1.1,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            '${subject.name} • $message',
+            style: const TextStyle(color: Color(0xFFD7D8F7), height: 1.35),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              SizedBox.square(
+                dimension: 64,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CircularProgressIndicator(
+                      value: readiness,
+                      strokeWidth: 7,
+                      backgroundColor: Colors.white12,
+                      color: const Color(0xFF66E2BA),
+                    ),
+                    Center(
+                      child: Text(
+                        '$percent%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'PRONTEZZA STIMATA',
+                      style: TextStyle(
+                        color: Color(0xFFA5B4FC),
+                        fontSize: 10,
+                        letterSpacing: .7,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${goal.completedLoops} missioni • '
+                      '${goal.totalAnswers} richiami',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          FilledButton.icon(
+            onPressed: onStart,
+            icon: const Icon(Icons.bolt),
+            label: Text(
+              goal.completedLoops == 0
+                  ? 'Avvia la prima missione'
+                  : 'Continua il piano di oggi',
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF3730A3),
+              minimumSize: const Size.fromHeight(52),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreparingMissionDialog extends StatelessWidget {
+  const _PreparingMissionDialog();
+
+  @override
+  Widget build(BuildContext context) => const AlertDialog(
+    content: Row(
+      children: [
+        CircularProgressIndicator(),
+        SizedBox(width: 18),
+        Expanded(
+          child: Text(
+            'Preparo una missione basata sui tuoi appunti...',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _MissionResultDialog extends StatelessWidget {
+  const _MissionResultDialog({
+    required this.score,
+    required this.total,
+    required this.readiness,
+  });
+  final int score;
+  final int total;
+  final double readiness;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    icon: Icon(
+      score / total >= .67 ? Icons.verified_outlined : Icons.replay_outlined,
+      color: score / total >= .67 ? _mint : _orange,
+      size: 42,
+    ),
+    title: Text(
+      score / total >= .67 ? 'Missione completata' : 'Errori salvati',
+    ),
+    content: Text(
+      'Hai richiamato $score concetti su $total.\n\n'
+      'Prontezza stimata: ${(readiness * 100).round()}%.\n'
+      'StudyLoop userà questo risultato per decidere il prossimo richiamo.',
+      textAlign: TextAlign.center,
+    ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Torna al piano'),
+      ),
+    ],
+  );
+}
+
+class _GoalEvidenceCard extends StatelessWidget {
+  const _GoalEvidenceCard({required this.goal, required this.readiness});
+  final LearningGoal goal;
+  final double readiness;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(17),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.flag_outlined, color: _indigo),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  goal.topic,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Text(
+                '${(readiness * 100).round()}%',
+                style: const TextStyle(
+                  color: _indigo,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _EvidenceChip(
+                icon: Icons.bolt,
+                text: '${goal.completedLoops} missioni',
+              ),
+              _EvidenceChip(
+                icon: Icons.task_alt,
+                text: '${(goal.accuracy * 100).round()}% accuratezza',
+              ),
+              _EvidenceChip(
+                icon: Icons.replay,
+                text: '${goal.retryQuestions.length} da recuperare',
+              ),
+            ],
+          ),
+          if (goal.retryQuestions.isNotEmpty) ...[
+            const SizedBox(height: 11),
+            const Text(
+              'La prossima missione inizierà dagli errori ancora aperti.',
+              style: TextStyle(color: _orange, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
+class _EvidenceChip extends StatelessWidget {
+  const _EvidenceChip({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF2F4F7),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: _muted),
+        const SizedBox(width: 5),
+        Text(
+          text,
+          style: const TextStyle(
+            color: _muted,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _HeroFocusCard extends StatelessWidget {
@@ -690,6 +1148,68 @@ class ProgressScreen extends StatelessWidget {
           ),
         ],
       ),
+      const SizedBox(height: 12),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3D6),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: Text(
+                  '${state.level}',
+                  style: const TextStyle(
+                    color: _orange,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Livello ${state.level} • ${state.xp} XP',
+                      style: const TextStyle(
+                        color: _ink,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    LinearProgressIndicator(
+                      value: state.xpInLevel / 300,
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(8),
+                      color: _orange,
+                      backgroundColor: const Color(0xFFFFF3D6),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${300 - state.xpInLevel} XP al prossimo livello',
+                      style: const TextStyle(color: _muted, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      if (state.activeGoal != null) ...[
+        const SizedBox(height: 12),
+        _GoalEvidenceCard(
+          goal: state.activeGoal!,
+          readiness: state.goalReadiness(state.activeGoal!),
+        ),
+      ],
       const SizedBox(height: 24),
       const _SectionTitle(
         title: 'Padronanza',
@@ -723,11 +1243,243 @@ class ProgressScreen extends StatelessWidget {
   );
 }
 
+class GoalSetupScreen extends StatefulWidget {
+  const GoalSetupScreen({super.key, required this.state});
+  final AppState state;
+
+  @override
+  State<GoalSetupScreen> createState() => _GoalSetupScreenState();
+}
+
+class _GoalSetupScreenState extends State<GoalSetupScreen> {
+  late final TextEditingController _topic;
+  late final TextEditingController _material;
+  late String _subjectId;
+  late DateTime _examDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final goal = widget.state.activeGoal;
+    _topic = TextEditingController(text: goal?.topic ?? '');
+    _material = TextEditingController(text: goal?.material ?? '');
+    _subjectId = goal?.subjectId ?? 'science';
+    _examDate = goal?.examDate ?? DateTime.now().add(const Duration(days: 7));
+  }
+
+  @override
+  void dispose() {
+    _topic.dispose();
+    _material.dispose();
+    super.dispose();
+  }
+
+  void _loadDemo() {
+    setState(() {
+      _subjectId = 'science';
+      _examDate = DateTime.now().add(const Duration(days: 7));
+      _topic.text = 'Fotosintesi clorofilliana';
+      _material.text =
+          'La fotosintesi avviene nei cloroplasti. La clorofilla cattura '
+          'l’energia della luce. La pianta usa acqua e anidride carbonica '
+          'per produrre glucosio e libera ossigeno. Il glucosio conserva '
+          'energia chimica utile alla pianta.';
+    });
+  }
+
+  Future<void> _pickDate() async {
+    final value = await showDatePicker(
+      context: context,
+      initialDate: _examDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      helpText: 'Quando hai la verifica?',
+    );
+    if (value != null) setState(() => _examDate = value);
+  }
+
+  Future<void> _save() async {
+    final topic = _topic.text.trim();
+    final material = _material.text.trim();
+    if (topic.length < 3 || material.length < 30) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Inserisci un argomento e almeno 30 caratteri di appunti.',
+          ),
+        ),
+      );
+      return;
+    }
+    final previous = widget.state.activeGoal;
+    final sameGoal =
+        previous != null &&
+        previous.subjectId == _subjectId &&
+        previous.topic.trim().toLowerCase() == topic.toLowerCase();
+    await widget.state.saveGoal(
+      LearningGoal(
+        id: sameGoal
+            ? previous.id
+            : DateTime.now().microsecondsSinceEpoch.toString(),
+        subjectId: _subjectId,
+        topic: topic,
+        material: material,
+        examDate: _examDate,
+        createdAt: sameGoal ? previous.createdAt : DateTime.now(),
+        completedLoops: sameGoal ? previous.completedLoops : 0,
+        correctAnswers: sameGoal ? previous.correctAnswers : 0,
+        totalAnswers: sameGoal ? previous.totalAnswers : 0,
+        retryQuestions: sameGoal ? previous.retryQuestions : const [],
+      ),
+    );
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final date =
+        '${_examDate.day.toString().padLeft(2, '0')}/'
+        '${_examDate.month.toString().padLeft(2, '0')}/${_examDate.year}';
+    return Scaffold(
+      appBar: AppBar(title: const Text('Obiettivo verifica')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 32),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.auto_awesome, color: _indigo),
+                  SizedBox(width: 11),
+                  Expanded(
+                    child: Text(
+                      'Incolla ciò che devi sapere. StudyLoop lo trasforma in '
+                      'micro-missioni e ripropone ciò che ricordi meno.',
+                      style: TextStyle(
+                        height: 1.4,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            OutlinedButton.icon(
+              onPressed: _loadDemo,
+              icon: const Icon(Icons.science_outlined),
+              label: const Text('Carica esempio demo completo'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+            const SizedBox(height: 18),
+            DropdownButtonFormField<String>(
+              initialValue: _subjectId,
+              decoration: const InputDecoration(
+                labelText: 'Materia',
+                prefixIcon: Icon(Icons.school_outlined),
+              ),
+              items: widget.state.subjects.values
+                  .map(
+                    (subject) => DropdownMenuItem(
+                      value: subject.id,
+                      child: Text(subject.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => _subjectId = value ?? _subjectId),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _topic,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Argomento della verifica',
+                hintText: 'Es. Fotosintesi clorofilliana',
+                prefixIcon: Icon(Icons.flag_outlined),
+              ),
+            ),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: BorderRadius.circular(16),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Data della verifica',
+                  prefixIcon: Icon(Icons.event_outlined),
+                ),
+                child: Text(
+                  date,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _material,
+              minLines: 7,
+              maxLines: 12,
+              maxLength: 3000,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Appunti o testo da studiare',
+                hintText:
+                    'Incolla un riassunto, gli appunti della lezione o il '
+                    'testo più importante...',
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.rocket_launch_outlined),
+              label: const Text('Crea il mio piano'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(56),
+              ),
+            ),
+            if (widget.state.activeGoal != null) ...[
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () async {
+                  await widget.state.removeGoal();
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+                child: const Text('Elimina questo obiettivo'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class FocusScreen extends StatefulWidget {
-  const FocusScreen({super.key, required this.subject, required this.minutes});
+  const FocusScreen({
+    super.key,
+    required this.subject,
+    required this.minutes,
+    this.questions,
+    this.missionTitle,
+    this.microLesson,
+    this.grounded = false,
+  });
 
   final SubjectProgress subject;
   final int minutes;
+  final List<QuizQuestion>? questions;
+  final String? missionTitle;
+  final String? microLesson;
+  final bool grounded;
 
   @override
   State<FocusScreen> createState() => _FocusScreenState();
@@ -776,8 +1528,10 @@ class _FocusScreenState extends State<FocusScreen> {
     final answers = await Navigator.of(context).push<List<bool>>(
       MaterialPageRoute(
         builder: (_) => QuizScreen(
-          questions: AdaptiveEngine.questionsFor(widget.subject.id),
-          title: widget.subject.name,
+          questions:
+              widget.questions ??
+              AdaptiveEngine.questionsFor(widget.subject.id),
+          title: widget.missionTitle ?? widget.subject.name,
         ),
       ),
     );
@@ -798,21 +1552,54 @@ class _FocusScreenState extends State<FocusScreen> {
         title: const Text('Focus mode'),
       ),
       body: SafeArea(
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
-          child: Column(
-            children: [
-              const Spacer(),
-              Text(
-                widget.subject.name,
-                style: const TextStyle(
-                  color: Color(0xFFC7D2FE),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+          children: [
+            const SizedBox(height: 10),
+            Text(
+              widget.missionTitle ?? widget.subject.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFFC7D2FE),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (widget.microLesson != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF24214F),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF3D3975)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.grounded
+                          ? 'MISSIONE DAI TUOI APPUNTI'
+                          : 'MICRO-LEZIONE',
+                      style: const TextStyle(
+                        color: Color(0xFFA5B4FC),
+                        fontSize: 11,
+                        letterSpacing: .8,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.microLesson!,
+                      style: const TextStyle(color: Colors.white, height: 1.4),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 28),
-              SizedBox.square(
+            ],
+            const SizedBox(height: 26),
+            Center(
+              child: SizedBox.square(
                 dimension: 230,
                 child: Stack(
                   fit: StackFit.expand,
@@ -837,33 +1624,33 @@ class _FocusScreenState extends State<FocusScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
-              const Text(
-                'Una cosa alla volta. Alla fine, tre domande renderanno '
-                'visibile ciò che hai davvero consolidato.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFFB8B7D4), height: 1.45),
+            ),
+            const SizedBox(height: 28),
+            const Text(
+              'Una cosa alla volta. Alla fine, tre domande renderanno '
+              'visibile ciò che hai davvero consolidato.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFFB8B7D4), height: 1.45),
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: _toggle,
+              icon: Icon(_running ? Icons.pause : Icons.play_arrow),
+              label: Text(_running ? 'Metti in pausa' : 'Avvia focus'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(54),
+                backgroundColor: const Color(0xFF7C7DF4),
               ),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: _toggle,
-                icon: Icon(_running ? Icons.pause : Icons.play_arrow),
-                label: Text(_running ? 'Metti in pausa' : 'Avvia focus'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(54),
-                  backgroundColor: const Color(0xFF7C7DF4),
-                ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _verify,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFC7D2FE),
               ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: _verify,
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFC7D2FE),
-                ),
-                child: const Text('Ho finito: verifica ciò che ricordo'),
-              ),
-            ],
-          ),
+              child: const Text('Ho finito: verifica ciò che ricordo'),
+            ),
+          ],
         ),
       ),
     );

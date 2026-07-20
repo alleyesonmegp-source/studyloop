@@ -24,6 +24,89 @@ class LearnerProfile {
   );
 }
 
+class LearningGoal {
+  const LearningGoal({
+    required this.id,
+    required this.subjectId,
+    required this.topic,
+    required this.material,
+    required this.examDate,
+    required this.createdAt,
+    this.completedLoops = 0,
+    this.correctAnswers = 0,
+    this.totalAnswers = 0,
+    this.retryQuestions = const [],
+  });
+
+  final String id;
+  final String subjectId;
+  final String topic;
+  final String material;
+  final DateTime examDate;
+  final DateTime createdAt;
+  final int completedLoops;
+  final int correctAnswers;
+  final int totalAnswers;
+  final List<QuizQuestion> retryQuestions;
+
+  double get accuracy => totalAnswers == 0 ? 0 : correctAnswers / totalAnswers;
+
+  int get daysRemaining {
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final end = DateTime(examDate.year, examDate.month, examDate.day);
+    return end.difference(start).inDays.clamp(0, 3650);
+  }
+
+  LearningGoal copyWith({
+    int? completedLoops,
+    int? correctAnswers,
+    int? totalAnswers,
+    List<QuizQuestion>? retryQuestions,
+  }) => LearningGoal(
+    id: id,
+    subjectId: subjectId,
+    topic: topic,
+    material: material,
+    examDate: examDate,
+    createdAt: createdAt,
+    completedLoops: completedLoops ?? this.completedLoops,
+    correctAnswers: correctAnswers ?? this.correctAnswers,
+    totalAnswers: totalAnswers ?? this.totalAnswers,
+    retryQuestions: retryQuestions ?? this.retryQuestions,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'subjectId': subjectId,
+    'topic': topic,
+    'material': material,
+    'examDate': examDate.toIso8601String(),
+    'createdAt': createdAt.toIso8601String(),
+    'completedLoops': completedLoops,
+    'correctAnswers': correctAnswers,
+    'totalAnswers': totalAnswers,
+    'retryQuestions': retryQuestions
+        .map((question) => question.toJson())
+        .toList(),
+  };
+
+  factory LearningGoal.fromJson(Map<String, dynamic> json) => LearningGoal(
+    id: json['id'] as String,
+    subjectId: json['subjectId'] as String,
+    topic: json['topic'] as String,
+    material: json['material'] as String? ?? '',
+    examDate: DateTime.parse(json['examDate'] as String),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    completedLoops: json['completedLoops'] as int? ?? 0,
+    correctAnswers: json['correctAnswers'] as int? ?? 0,
+    totalAnswers: json['totalAnswers'] as int? ?? 0,
+    retryQuestions: (json['retryQuestions'] as List? ?? const [])
+        .map((item) => QuizQuestion.fromJson(item as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
 class SubjectProgress {
   const SubjectProgress({
     required this.id,
@@ -103,6 +186,17 @@ class QuizQuestion {
   final String explanation;
   final String source;
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'subjectId': subjectId,
+    'topic': topic,
+    'prompt': prompt,
+    'options': options,
+    'correctIndex': correctIndex,
+    'explanation': explanation,
+    'source': source,
+  };
+
   factory QuizQuestion.fromJson(Map<String, dynamic> json) => QuizQuestion(
     id: json['id'] as String,
     subjectId: json['subjectId'] as String,
@@ -162,6 +256,14 @@ class StudyPack {
   final List<QuizQuestion> questions;
   final bool aiGenerated;
 
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'microLesson': microLesson,
+    'whyItMatters': whyItMatters,
+    'questions': questions.map((question) => question.toJson()).toList(),
+    'aiGenerated': aiGenerated,
+  };
+
   factory StudyPack.fromJson(Map<String, dynamic> json) => StudyPack(
     title: json['title'] as String,
     microLesson: json['microLesson'] as String,
@@ -169,7 +271,7 @@ class StudyPack {
     questions: (json['questions'] as List)
         .map((item) => QuizQuestion.fromJson(item as Map<String, dynamic>))
         .toList(),
-    aiGenerated: true,
+    aiGenerated: json['aiGenerated'] as bool? ?? true,
   );
 }
 

@@ -1,0 +1,32 @@
+Most study apps count minutes. StudyLoop measures what becomes stronger and
+explains what to review next.
+
+The learner starts with a subject, exam date, and their own material. Here I
+load a complete photosynthesis example. StudyLoop turns those notes into a
+daily mission and shows an estimated readiness score based on visible learning
+evidence.
+
+The mission begins with a micro-lesson grounded in the notes. A focus timer
+supports distraction-free study; then three retrieval questions test what was
+actually remembered.
+
+I intentionally answer the first question incorrectly. StudyLoop explains the
+correct concept and saves the question in a local rescue queue. Correct answers
+strengthen mastery, while the missed concept is scheduled to return. The final
+result shows recalled concepts and updated exam readiness.
+
+The Loop view makes the next action explainable: unresolved mistakes receive
+priority until recovered. Progress shows mastery, recall evidence, focus
+history, experience points, and readiness—not only time spent.
+
+Coach AI is optional. GPT-5.6 Sol transforms a bounded topic and notes into a
+schema-validated micro-lesson and exactly three age-appropriate questions. The
+API key remains on the FastAPI backend, never in the APK. Responses use store
+false, and a labeled offline fallback keeps the app demonstrable.
+
+Codex was used throughout OpenAI Build Week to design the adaptive engine,
+implement Flutter and FastAPI, fix small-screen overflows, create tests,
+translate the competition build, and prepare the public repository.
+
+StudyLoop uses AI to create useful practice, while transparent evidence decides
+what returns next. Focus. Recall. Adapt. Repeat.

@@ -47,3 +47,9 @@ app.*.map.json
 # Local secrets and device QA captures
 .env
 studyloop_*_qa.png
+
+# Local demo recording intermediates and QA frames
+docs/demo/*
+!docs/demo/StudyLoop-Devpost-Demo-FINAL.mp4
+!docs/demo/narration.txt
+docs/screenshots/qa-*.png

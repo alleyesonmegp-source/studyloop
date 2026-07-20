@@ -5,6 +5,20 @@ import 'package:studyloop_mobile/app_state.dart';
 import 'package:studyloop_mobile/models.dart';
 
 void main() {
+  test('backend address is normalized and persisted locally', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = AppState();
+    await state.load();
+
+    await state.setBackendUrl(' http://192.168.1.20:8000/// ');
+
+    expect(state.backendUrl, 'http://192.168.1.20:8000');
+    final restored = AppState();
+    await restored.load();
+    expect(restored.backendUrl, state.backendUrl);
+    expect(AiCoachService(baseUrl: restored.backendUrl).isConfigured, isTrue);
+  });
+
   test('offline demo grounds the mission in the supplied material', () {
     final pack = AiCoachService().offlinePack(
       topic: 'Fotosintesi clorofilliana',

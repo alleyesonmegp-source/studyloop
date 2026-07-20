@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug/demo builds may connect to a judge's backend on the local LAN.
+         Production builds continue to require HTTPS. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

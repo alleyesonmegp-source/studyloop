@@ -238,6 +238,7 @@ class TodayScreen extends StatelessWidget {
   }
 
   Future<void> _startGoal(BuildContext context, LearningGoal goal) async {
+    final service = AiCoachService(baseUrl: state.backendUrl);
     unawaited(
       showDialog<void>(
         context: context,
@@ -247,14 +248,14 @@ class TodayScreen extends StatelessWidget {
     );
     StudyPack pack;
     try {
-      pack = await AiCoachService().createPack(
+      pack = await service.createPack(
         topic: goal.topic,
         notes: goal.material,
         grade: state.profile!.grade,
         subjectId: goal.subjectId,
       );
     } catch (_) {
-      pack = AiCoachService().offlinePack(
+      pack = service.offlinePack(
         topic: goal.topic,
         notes: goal.material,
         subjectId: goal.subjectId,
@@ -952,19 +953,69 @@ class AiCoachScreen extends StatefulWidget {
 }
 
 class _AiCoachScreenState extends State<AiCoachScreen> {
-  final _service = AiCoachService();
   final _topic = TextEditingController(text: 'Frazioni equivalenti');
   final _notes = TextEditingController();
+  late final TextEditingController _backendUrl;
   String _subjectId = 'math';
   StudyPack? _pack;
   bool _loading = false;
+  bool _testingBackend = false;
+  BackendHealth? _backendHealth;
+  String? _backendMessage;
   String? _error;
+
+  AiCoachService get _service =>
+      AiCoachService(baseUrl: widget.state.backendUrl);
+
+  @override
+  void initState() {
+    super.initState();
+    _backendUrl = TextEditingController(text: widget.state.backendUrl);
+  }
 
   @override
   void dispose() {
     _topic.dispose();
     _notes.dispose();
+    _backendUrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveAndTestBackend() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final normalized = AiCoachService.normalizeUrl(_backendUrl.text);
+    await widget.state.setBackendUrl(normalized);
+    if (!mounted) return;
+    setState(() {
+      _testingBackend = true;
+      _backendHealth = null;
+      _backendMessage = null;
+    });
+    try {
+      final health = await _service.checkHealth();
+      if (!mounted) return;
+      setState(() {
+        _backendHealth = health;
+        _backendMessage = health.configured
+            ? 'Connesso a ${health.model}: API key disponibile sul backend.'
+            : 'Backend raggiungibile, ma OPENAI_API_KEY non è configurata.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _backendMessage = 'Connessione non riuscita: $error');
+    } finally {
+      if (mounted) setState(() => _testingBackend = false);
+    }
+  }
+
+  Future<void> _useOfflineMode() async {
+    _backendUrl.clear();
+    await widget.state.setBackendUrl('');
+    if (!mounted) return;
+    setState(() {
+      _backendHealth = null;
+      _backendMessage = 'Modalità demo offline attiva.';
+    });
   }
 
   Future<void> _generate() async {
@@ -1037,8 +1088,87 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
               ],
             ),
           ),
-          _AiStatusChip(live: _service.isConfigured),
+          _AiStatusChip(
+            live: _backendHealth?.configured == true,
+            configured: _service.isConfigured,
+          ),
         ],
+      ),
+      const SizedBox(height: 14),
+      Card(
+        child: ExpansionTile(
+          leading: const Icon(Icons.dns_outlined, color: _indigo),
+          title: const Text(
+            'Connessione GPT-5.6',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            _service.isConfigured
+                ? _service.baseUrl
+                : 'Demo offline • nessuna API key nell’app',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
+          children: [
+            const Text(
+              'Inserisci l’indirizzo del backend StudyLoop. La API key resta '
+              'nel file .env del server e non viene mai salvata nell’APK.',
+              style: TextStyle(color: _muted, height: 1.35),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _backendUrl,
+              keyboardType: TextInputType.url,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: const InputDecoration(
+                labelText: 'Indirizzo backend',
+                hintText: 'http://192.168.1.20:8000',
+                prefixIcon: Icon(Icons.link),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _testingBackend ? null : _saveAndTestBackend,
+                    icon: _testingBackend
+                        ? const SizedBox.square(
+                            dimension: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.wifi_tethering),
+                    label: Text(
+                      _testingBackend ? 'Verifico...' : 'Salva e verifica',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  onPressed: _testingBackend ? null : _useOfflineMode,
+                  tooltip: 'Usa modalità offline',
+                  icon: const Icon(Icons.offline_bolt_outlined),
+                ),
+              ],
+            ),
+            if (_backendMessage != null) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _backendMessage!,
+                  style: TextStyle(
+                    color: _backendHealth?.configured == true ? _mint : _orange,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
       const SizedBox(height: 22),
       DropdownButtonFormField<String>(
@@ -2357,36 +2487,42 @@ class _WhiteTag extends StatelessWidget {
 }
 
 class _AiStatusChip extends StatelessWidget {
-  const _AiStatusChip({required this.live});
+  const _AiStatusChip({required this.live, required this.configured});
   final bool live;
+  final bool configured;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-    decoration: BoxDecoration(
-      color: (live ? _mint : _orange).withValues(alpha: .12),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          live ? Icons.cloud_done_outlined : Icons.offline_bolt_outlined,
-          color: live ? _mint : _orange,
-          size: 16,
-        ),
-        const SizedBox(width: 5),
-        Text(
-          live ? 'GPT-5.6 Sol' : 'Demo offline',
-          style: TextStyle(
-            color: live ? _mint : _orange,
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final color = live ? _mint : (configured ? _indigo : _orange);
+    final label = live
+        ? 'GPT-5.6 Sol'
+        : (configured ? 'Backend salvato' : 'Demo offline');
+    final icon = live
+        ? Icons.cloud_done_outlined
+        : (configured ? Icons.dns_outlined : Icons.offline_bolt_outlined);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 class _PrivacyCard extends StatelessWidget {

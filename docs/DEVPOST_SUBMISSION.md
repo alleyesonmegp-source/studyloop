@@ -137,3 +137,6 @@ evidence decides what comes next."
    see the rescue queue.
 6. Open Coach AI. If the hosted backend is unavailable, the app clearly labels
    and uses its offline fallback; the rest of the product remains functional.
+7. To use your own GPT-5.6 key, put it in `backend/.env`, start FastAPI, then
+   open "Connessione GPT-5.6" in the app and enter the backend URL. Never enter
+   an API key on the phone.

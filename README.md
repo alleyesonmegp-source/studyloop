@@ -78,7 +78,11 @@ flutter pub get
 flutter run
 ```
 
-To connect a hosted or LAN backend:
+To connect a hosted or LAN backend, open **Coach AI → Connessione GPT-5.6**
+inside the app, enter the URL, and tap **Salva e verifica**. The address is
+stored locally and can be changed without rebuilding the APK.
+
+The compile-time option remains available for automated deployments:
 
 ```powershell
 flutter run --dart-define=STUDYLOOP_API_URL=https://your-backend.example
@@ -86,6 +90,10 @@ flutter run --dart-define=STUDYLOOP_API_URL=https://your-backend.example
 
 For a physical Android device on the same Wi-Fi, use the computer's LAN address
 instead of `localhost`, for example `http://192.168.1.10:8000`.
+
+Debug APKs allow local HTTP connections for judge testing. Production builds
+require an HTTPS backend. The OpenAI API key always stays in `backend/.env`;
+StudyLoop never asks for or stores it on the phone.
 
 ## Run the AI backend
 

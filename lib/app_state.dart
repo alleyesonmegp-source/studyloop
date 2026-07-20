@@ -12,6 +12,7 @@ class AppState extends ChangeNotifier {
   bool ready = false;
   LearnerProfile? profile;
   LearningGoal? activeGoal;
+  String backendUrl = const String.fromEnvironment('STUDYLOOP_API_URL');
   final Map<String, SubjectProgress> subjects = {};
   final List<StudySession> sessions = [];
 
@@ -81,6 +82,9 @@ class AppState extends ChangeNotifier {
             json['activeGoal'] as Map<String, dynamic>,
           );
         }
+        backendUrl =
+            json['backendUrl'] as String? ??
+            const String.fromEnvironment('STUDYLOOP_API_URL');
         for (final item in (json['subjects'] as List? ?? const [])) {
           final subject = SubjectProgress.fromJson(
             item as Map<String, dynamic>,
@@ -178,6 +182,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setBackendUrl(String value) async {
+    backendUrl = value.trim().replaceFirst(RegExp(r'/+$'), '');
+    await _save();
+    notifyListeners();
+  }
+
   Future<void> recordGoalSession({
     required List<bool> answers,
     required List<QuizQuestion> questions,
@@ -259,6 +269,7 @@ class AppState extends ChangeNotifier {
       jsonEncode({
         'profile': profile?.toJson(),
         'activeGoal': activeGoal?.toJson(),
+        'backendUrl': backendUrl,
         'subjects': subjects.values.map((value) => value.toJson()).toList(),
         'sessions': sessions.take(60).map((value) => value.toJson()).toList(),
       }),

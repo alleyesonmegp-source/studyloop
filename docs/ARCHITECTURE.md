@@ -54,6 +54,8 @@ history.
 ## Privacy and safety boundaries
 
 - No OpenAI key in mobile code.
+- Runtime backend URL can be stored locally and health-checked from Coach AI;
+  only the server reads `OPENAI_API_KEY`.
 - Local progress storage.
 - `store=False` for Responses API calls.
 - Input lengths are bounded.

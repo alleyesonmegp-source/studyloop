@@ -6,9 +6,42 @@ import 'adaptive_engine.dart';
 import 'models.dart';
 
 class AiCoachService {
-  static const baseUrl = String.fromEnvironment('STUDYLOOP_API_URL');
+  AiCoachService({String? baseUrl})
+    : baseUrl = normalizeUrl(
+        baseUrl ?? const String.fromEnvironment('STUDYLOOP_API_URL'),
+      );
 
-  bool get isConfigured => baseUrl.trim().isNotEmpty;
+  final String baseUrl;
+
+  bool get isConfigured {
+    final uri = Uri.tryParse(baseUrl);
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
+
+  static String normalizeUrl(String value) =>
+      value.trim().replaceFirst(RegExp(r'/+$'), '');
+
+  Future<BackendHealth> checkHealth() async {
+    if (!isConfigured) {
+      throw const FormatException(
+        'Inserisci un indirizzo http:// o https:// valido.',
+      );
+    }
+    final response = await http
+        .get(Uri.parse('$baseUrl/health'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError('Il backend ha risposto ${response.statusCode}.');
+    }
+    final body =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    return BackendHealth(
+      configured: body['configured'] as bool? ?? false,
+      model: body['model'] as String? ?? 'sconosciuto',
+    );
+  }
 
   Future<StudyPack> createPack({
     required String topic,
@@ -116,4 +149,11 @@ class AiCoachService {
       aiGenerated: false,
     );
   }
+}
+
+class BackendHealth {
+  const BackendHealth({required this.configured, required this.model});
+
+  final bool configured;
+  final String model;
 }

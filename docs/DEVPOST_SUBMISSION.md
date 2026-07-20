@@ -86,7 +86,11 @@ component instead of an unbounded chat box.
 
 Teacher-created curricula, local encrypted profiles, richer accessibility,
 multilingual learning packs, content-source citations, parent/teacher consent
-flows, and evaluation of question quality with educators.
+flows, and evaluation of question quality with educators. Future integrations
+with school platforms and learning management systems could securely import
+assignments, deadlines, subjects, and grades—with appropriate school and
+guardian consent—so StudyLoop can build daily missions automatically and focus
+practice on the areas where each learner needs the most support.
 
 ## Three-minute demo script
 
@@ -131,12 +135,12 @@ evidence decides what comes next."
 
 1. Install the provided Android APK.
 2. Complete onboarding; choose any name and confirm the age/guardian disclosure.
-3. Tap "Crea obiettivo verifica", then "Carica esempio demo completo" and save.
+3. Tap "Create exam goal", then "Load complete demo example" and save.
 4. Start the mission and use "I finished" to reach the quiz immediately.
 5. Miss at least one answer, inspect Progress, and start the mission again to
    see the rescue queue.
 6. Open Coach AI. If the hosted backend is unavailable, the app clearly labels
    and uses its offline fallback; the rest of the product remains functional.
 7. To use your own GPT-5.6 key, put it in `backend/.env`, start FastAPI, then
-   open "Connessione GPT-5.6" in the app and enter the backend URL. Never enter
+   open "GPT-5.6 connection" in the app and enter the backend URL. Never enter
    an API key on the phone.

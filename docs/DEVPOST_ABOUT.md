@@ -43,6 +43,15 @@ engine, creating the Flutter UI and state model, implementing the FastAPI
 backend, adding minor-safety controls, fixing small-screen overflow, producing
 tests, translating the competition build, and preparing the public repository.
 
+This was an end-to-end human–Codex collaboration, not a single isolated coding
+prompt. Codex scaffolded and implemented the Android and backend projects,
+iterated on product design, diagnosed device issues through ADB, created tests
+and documentation, prepared the gallery assets, assembled the narrated demo
+video, published the repository, and guided the Devpost submission workflow.
+The human participant set the product direction, made final decisions, tested
+the experience on real hardware, and completed all account, consent, and
+submission actions.
+
 ## Challenges we ran into
 
 The main design challenge was deciding what AI should *not* control. A fully

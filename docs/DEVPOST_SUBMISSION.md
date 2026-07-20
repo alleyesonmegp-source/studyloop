@@ -56,6 +56,14 @@ engine, creating the Flutter UI and state model, building the FastAPI boundary,
 adding minor-safety controls, fixing small-screen overflow, generating tests,
 and preparing the submission materials.
 
+This was an end-to-end human–Codex collaboration rather than a single coding
+prompt. Codex scaffolded and implemented the Android and backend projects,
+iterated on the product, diagnosed device issues through ADB, prepared tests,
+documentation and gallery assets, assembled the narrated demo, published the
+repository, and guided the submission workflow. The human participant set the
+direction, made final decisions, tested on real hardware, and completed all
+account, consent, and submission actions.
+
 Before submission, add the `/feedback` Session ID here: **TODO**
 
 ## Challenges

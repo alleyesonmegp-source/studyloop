@@ -7,7 +7,7 @@ import 'adaptive_engine.dart';
 import 'models.dart';
 
 class AppState extends ChangeNotifier {
-  static const _storageKey = 'studyloop_state_v2';
+  static const _storageKey = 'studyloop_state_v3_en';
 
   bool ready = false;
   LearnerProfile? profile;

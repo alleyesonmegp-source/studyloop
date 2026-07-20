@@ -9,9 +9,9 @@ void main() {
     await tester.pumpWidget(const StudyLoopApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Impara nel momento giusto.'), findsOneWidget);
+    expect(find.text('Learn at the right moment.'), findsOneWidget);
     await tester.drag(find.byType(ListView), const Offset(0, -650));
     await tester.pumpAndSettle();
-    expect(find.text('Crea il mio primo loop'), findsOneWidget);
+    expect(find.text('Create my first loop'), findsOneWidget);
   });
 }

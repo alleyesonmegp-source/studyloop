@@ -19,7 +19,7 @@ class LearnerProfile {
 
   factory LearnerProfile.fromJson(Map<String, dynamic> json) => LearnerProfile(
     name: json['name'] as String? ?? 'Alex',
-    grade: json['grade'] as String? ?? 'Scuola media',
+    grade: json['grade'] as String? ?? 'Middle school',
     focusMinutes: json['focusMinutes'] as int? ?? 20,
   );
 }

@@ -25,21 +25,19 @@ class AiCoachService {
 
   Future<BackendHealth> checkHealth() async {
     if (!isConfigured) {
-      throw const FormatException(
-        'Inserisci un indirizzo http:// o https:// valido.',
-      );
+      throw const FormatException('Enter a valid http:// or https:// address.');
     }
     final response = await http
         .get(Uri.parse('$baseUrl/health'))
         .timeout(const Duration(seconds: 8));
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw StateError('Il backend ha risposto ${response.statusCode}.');
+      throw StateError('The backend returned ${response.statusCode}.');
     }
     final body =
         jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     return BackendHealth(
       configured: body['configured'] as bool? ?? false,
-      model: body['model'] as String? ?? 'sconosciuto',
+      model: body['model'] as String? ?? 'unknown',
     );
   }
 
@@ -66,7 +64,7 @@ class AiCoachService {
         )
         .timeout(const Duration(seconds: 35));
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw StateError('Backend non disponibile (${response.statusCode})');
+      throw StateError('Backend unavailable (${response.statusCode})');
     }
     return StudyPack.fromJson(
       jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>,
@@ -79,55 +77,55 @@ class AiCoachService {
     required String subjectId,
   }) {
     final normalized = '$topic $notes'.toLowerCase();
-    if (normalized.contains('fotosintesi') ||
-        normalized.contains('clorofilla')) {
+    if (normalized.contains('photosynthesis') ||
+        normalized.contains('chlorophyll')) {
       return StudyPack(
-        title: topic.isEmpty ? 'Fotosintesi clorofilliana' : topic,
+        title: topic.isEmpty ? 'Photosynthesis' : topic,
         microLesson:
-            'La fotosintesi avviene nei cloroplasti: la clorofilla cattura '
-            'l’energia della luce e la pianta usa acqua e anidride carbonica '
-            'per produrre glucosio. L’ossigeno viene liberato come prodotto. '
-            'Il glucosio conserva energia chimica utile alla pianta.',
+            'Photosynthesis happens in chloroplasts. Chlorophyll captures '
+            'light energy, and the plant uses water and carbon dioxide to '
+            'produce glucose. Oxygen is released as a product, while glucose '
+            'stores chemical energy the plant can use.',
         whyItMatters:
-            'Questa missione usa esattamente i concetti presenti nei tuoi '
-            'appunti e li trasforma in recupero attivo.',
+            'This mission uses the concepts in your notes and turns them into '
+            'active recall.',
         questions: const [
           QuizQuestion(
             id: 'goal-photo-1',
             subjectId: 'science',
-            topic: 'Fotosintesi',
-            prompt: 'In quale organulo avviene principalmente la fotosintesi?',
-            options: ['Nucleo', 'Cloroplasto', 'Mitocondrio', 'Ribosoma'],
+            topic: 'Photosynthesis',
+            prompt: 'In which organelle does photosynthesis mainly occur?',
+            options: ['Nucleus', 'Chloroplast', 'Mitochondrion', 'Ribosome'],
             correctIndex: 1,
             explanation:
-                'La fotosintesi avviene nei cloroplasti, che contengono clorofilla.',
+                'Photosynthesis occurs in chloroplasts, which contain chlorophyll.',
             source: 'offline-grounded-demo',
           ),
           QuizQuestion(
             id: 'goal-photo-2',
             subjectId: 'science',
-            topic: 'Fotosintesi',
-            prompt: 'Quali sostanze usa la pianta per produrre glucosio?',
+            topic: 'Photosynthesis',
+            prompt: 'Which substances does a plant use to produce glucose?',
             options: [
-              'Acqua e anidride carbonica',
-              'Ossigeno e azoto',
-              'Glucosio e ossigeno',
-              'Sali e proteine',
+              'Water and carbon dioxide',
+              'Oxygen and nitrogen',
+              'Glucose and oxygen',
+              'Minerals and proteins',
             ],
             correctIndex: 0,
             explanation:
-                'Acqua e anidride carbonica, grazie all’energia luminosa, '
-                'sono utilizzate per produrre glucosio.',
+                'With light energy, water and carbon dioxide are used to '
+                'produce glucose.',
             source: 'offline-grounded-demo',
           ),
           QuizQuestion(
             id: 'goal-photo-3',
             subjectId: 'science',
-            topic: 'Fotosintesi',
-            prompt: 'Quale gas viene liberato durante la fotosintesi?',
-            options: ['Azoto', 'Metano', 'Ossigeno', 'Idrogeno'],
+            topic: 'Photosynthesis',
+            prompt: 'Which gas is released during photosynthesis?',
+            options: ['Nitrogen', 'Methane', 'Oxygen', 'Hydrogen'],
             correctIndex: 2,
-            explanation: 'Durante la fotosintesi viene liberato ossigeno.',
+            explanation: 'Oxygen is released during photosynthesis.',
             source: 'offline-grounded-demo',
           ),
         ],
@@ -136,15 +134,14 @@ class AiCoachService {
     }
     final questions = AdaptiveEngine.questionsFor(subjectId);
     return StudyPack(
-      title: topic.isEmpty ? 'Ripasso intelligente' : topic,
+      title: topic.isEmpty ? 'Smart review' : topic,
       microLesson:
-          'Concentrati sull’idea centrale di “$topic”, richiamala senza '
-          'guardare e poi '
-          'controlla con un esempio. Il recupero attivo rende il ricordo più '
-          'stabile della semplice rilettura.',
+          'Focus on the central idea in “$topic”, recall it without looking, '
+          'then check it with an example. Active recall builds a more stable '
+          'memory than simply rereading.',
       whyItMatters:
-          'La demo offline non interpreta liberamente gli appunti: propone '
-          'un richiamo della materia senza inventare informazioni.',
+          'The offline demo does not freely interpret your notes. It provides '
+          'a subject recall without inventing information.',
       questions: questions,
       aiGenerated: false,
     );

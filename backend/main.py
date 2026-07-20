@@ -76,7 +76,7 @@ def create_study_pack(request: StudyPackRequest) -> GeneratedStudyPack:
     client = OpenAI()
     system_prompt = """
 You are StudyLoop Coach, an expert learning designer for students.
-Create a compact, age-appropriate retrieval-practice pack in Italian.
+Create a compact, age-appropriate retrieval-practice pack in English.
 Ground every factual claim and question in the learner-provided topic and
 notes. Never request personal data. If notes are supplied, do not introduce
 facts that are absent from them unless needed to correct a clear misconception.
@@ -88,10 +88,10 @@ The whyItMatters field must explicitly say how the questions connect to the
 learner's material and learning goal, not praise the AI.
 """.strip()
     user_prompt = (
-        f"Livello: {request.grade}\n"
-        f"Materia ID: {request.subjectId}\n"
-        f"Argomento: {request.topic}\n"
-        f"Appunti dello studente: {request.notes or 'Nessun appunto fornito'}"
+        f"Learning level: {request.grade}\n"
+        f"Subject ID: {request.subjectId}\n"
+        f"Topic: {request.topic}\n"
+        f"Learner notes: {request.notes or 'No notes supplied'}"
     )
     response = client.responses.parse(
         model="gpt-5.6-sol",

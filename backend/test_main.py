@@ -17,9 +17,9 @@ def test_study_pack_requires_server_key(monkeypatch) -> None:
     response = client.post(
         "/v1/study-pack",
         json={
-            "topic": "Frazioni equivalenti",
+            "topic": "Equivalent fractions",
             "notes": "",
-            "grade": "Scuola media",
+            "grade": "Middle school",
             "subjectId": "math",
         },
     )

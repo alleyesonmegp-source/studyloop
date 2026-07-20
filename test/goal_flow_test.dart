@@ -21,13 +21,13 @@ void main() {
 
   test('offline demo grounds the mission in the supplied material', () {
     final pack = AiCoachService().offlinePack(
-      topic: 'Fotosintesi clorofilliana',
-      notes: 'La fotosintesi avviene nei cloroplasti.',
+      topic: 'Photosynthesis',
+      notes: 'Photosynthesis happens in chloroplasts.',
       subjectId: 'science',
     );
 
     expect(pack.questions, hasLength(3));
-    expect(pack.questions.first.prompt, contains('organulo'));
+    expect(pack.questions.first.prompt, contains('organelle'));
     expect(pack.questions.first.source, 'offline-grounded-demo');
   });
 
@@ -38,8 +38,8 @@ void main() {
     final goal = LearningGoal(
       id: 'goal-1',
       subjectId: 'science',
-      topic: 'Fotosintesi',
-      material: 'La fotosintesi avviene nei cloroplasti e libera ossigeno.',
+      topic: 'Photosynthesis',
+      material: 'Photosynthesis happens in chloroplasts and releases oxygen.',
       examDate: DateTime.now().add(const Duration(days: 7)),
       createdAt: DateTime.now(),
     );
@@ -48,7 +48,7 @@ void main() {
 
     final questions = AiCoachService()
         .offlinePack(
-          topic: 'Fotosintesi',
+          topic: 'Photosynthesis',
           notes: goal.material,
           subjectId: 'science',
         )

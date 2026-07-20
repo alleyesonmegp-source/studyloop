@@ -46,7 +46,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _name = TextEditingController();
-  String _grade = 'Scuola media';
+  String _grade = 'Middle school';
   int _focusMinutes = 20;
   bool _ageConfirmed = false;
 
@@ -65,7 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const Align(alignment: Alignment.centerLeft, child: _BrandMark()),
           const SizedBox(height: 28),
           const Text(
-            'Impara nel momento giusto.',
+            'Learn at the right moment.',
             style: TextStyle(
               color: _ink,
               fontSize: 34,
@@ -75,28 +75,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'StudyLoop trasforma ogni sessione in un ciclo: focus, verifica, '
-            'adattamento e richiamo prima che il ricordo svanisca.',
+            'StudyLoop turns every session into a loop: focus, recall, adapt, '
+            'and review before the memory fades.',
             style: TextStyle(color: _muted, fontSize: 16, height: 1.45),
           ),
           const SizedBox(height: 30),
-          const _FieldLabel('Come vuoi essere chiamato?'),
+          const _FieldLabel('What should we call you?'),
           const SizedBox(height: 8),
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
-              hintText: 'Il tuo nome',
+              hintText: 'Your name',
               prefixIcon: Icon(Icons.person_outline),
             ),
           ),
           const SizedBox(height: 22),
-          const _FieldLabel('Percorso'),
+          const _FieldLabel('Learning level'),
           const SizedBox(height: 9),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: ['Scuola media', 'Scuola superiore', 'Università']
+            children: ['Middle school', 'High school', 'University']
                 .map(
                   (grade) => ChoiceChip(
                     label: Text(grade),
@@ -109,9 +109,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(height: 22),
           Row(
             children: [
-              const Expanded(child: _FieldLabel('Durata focus')),
+              const Expanded(child: _FieldLabel('Focus duration')),
               Text(
-                '$_focusMinutes minuti',
+                '$_focusMinutes minutes',
                 style: const TextStyle(
                   color: _indigo,
                   fontWeight: FontWeight.w800,
@@ -134,12 +134,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
             title: const Text(
-              'Ho almeno 14 anni oppure uso StudyLoop con un genitore/tutore.',
+              'I am at least 14, or I use StudyLoop with a parent or guardian.',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
             subtitle: const Text(
-              'Il Coach AI genera materiale didattico e può commettere errori: '
-              'verifica sempre le informazioni importanti.',
+              'AI Coach generates learning material and can make mistakes. '
+              'Always verify important information.',
               style: TextStyle(fontSize: 11),
             ),
           ),
@@ -158,15 +158,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     );
                   },
             icon: const Icon(Icons.arrow_forward),
-            label: const Text('Crea il mio primo loop'),
+            label: const Text('Create my first loop'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(56),
             ),
           ),
           const SizedBox(height: 14),
           const Text(
-            'Privacy-first: i progressi restano sul dispositivo. Le richieste '
-            'al Coach AI passano da un backend sicuro, mai da una chiave nell’app.',
+            'Privacy-first: progress stays on this device. AI Coach requests '
+            'use a secure backend; no API key is ever stored in the app.',
             textAlign: TextAlign.center,
             style: TextStyle(color: _muted, fontSize: 12),
           ),
@@ -204,7 +204,7 @@ class _StudyLoopShellState extends State<StudyLoopShell> {
           NavigationDestination(
             icon: Icon(Icons.today_outlined),
             selectedIcon: Icon(Icons.today),
-            label: 'Oggi',
+            label: 'Today',
           ),
           NavigationDestination(
             icon: Icon(Icons.loop_outlined),
@@ -219,7 +219,7 @@ class _StudyLoopShellState extends State<StudyLoopShell> {
           NavigationDestination(
             icon: Icon(Icons.insights_outlined),
             selectedIcon: Icon(Icons.insights),
-            label: 'Progressi',
+            label: 'Progress',
           ),
         ],
       ),
@@ -273,8 +273,8 @@ class TodayScreen extends StatelessWidget {
         title: pack.title,
         microLesson: pack.microLesson,
         whyItMatters:
-            'Prima recuperiamo gli errori precedenti, poi aggiungiamo un '
-            'nuovo richiamo dai tuoi appunti.',
+            'We begin with unresolved mistakes, then add a new recall prompt '
+            'grounded in your notes.',
         questions: merged,
         aiGenerated: pack.aiGenerated,
       );
@@ -326,7 +326,7 @@ class TodayScreen extends StatelessWidget {
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Loop completato e piano aggiornato.')),
+      const SnackBar(content: Text('Loop completed and plan updated.')),
     );
   }
 
@@ -346,7 +346,7 @@ class TodayScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ciao, ${state.profile!.name}',
+                    'Hi, ${state.profile!.name}',
                     style: const TextStyle(
                       color: _ink,
                       fontSize: 23,
@@ -354,7 +354,7 @@ class TodayScreen extends StatelessWidget {
                     ),
                   ),
                   const Text(
-                    'Il piano si è adattato ai tuoi progressi.',
+                    'Your plan has adapted to your progress.',
                     style: TextStyle(color: _muted),
                   ),
                 ],
@@ -368,7 +368,7 @@ class TodayScreen extends StatelessWidget {
               itemBuilder: (_) => const [
                 PopupMenuItem(
                   value: 'reset',
-                  child: Text('Azzera dati e onboarding'),
+                  child: Text('Reset data and onboarding'),
                 ),
               ],
             ),
@@ -401,7 +401,7 @@ class TodayScreen extends StatelessWidget {
               child: _MetricPill(
                 icon: Icons.local_fire_department_outlined,
                 value: '${state.streak}',
-                label: 'giorni',
+                label: 'day streak',
                 color: _orange,
               ),
             ),
@@ -410,7 +410,7 @@ class TodayScreen extends StatelessWidget {
               child: _MetricPill(
                 icon: Icons.check_circle_outline,
                 value: '${state.todaySessions}',
-                label: 'loop oggi',
+                label: 'loops today',
                 color: _mint,
               ),
             ),
@@ -419,7 +419,7 @@ class TodayScreen extends StatelessWidget {
               child: _MetricPill(
                 icon: Icons.schedule,
                 value: '${state.totalMinutes}',
-                label: 'min totali',
+                label: 'total min',
                 color: _indigo,
               ),
             ),
@@ -427,8 +427,8 @@ class TodayScreen extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const _SectionTitle(
-          title: 'Coda intelligente',
-          subtitle: 'Ordinata per urgenza, fragilità e decadimento.',
+          title: 'Smart queue',
+          subtitle: 'Ranked by urgency, fragility, and memory decay.',
         ),
         const SizedBox(height: 12),
         ...plan.asMap().entries.map(
@@ -465,7 +465,7 @@ class _EmptyGoalCard extends StatelessWidget {
             Icon(Icons.flag_outlined, color: Color(0xFFFFD56A)),
             SizedBox(width: 8),
             Text(
-              'NUOVO • MISSIONE VERIFICA',
+              'NEW • EXAM MISSION',
               style: TextStyle(
                 color: Color(0xFFFFD56A),
                 fontSize: 11,
@@ -477,7 +477,7 @@ class _EmptyGoalCard extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         const Text(
-          'Dai tuoi appunti a un piano che si adatta.',
+          'Turn your notes into a plan that adapts.',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,
@@ -487,15 +487,15 @@ class _EmptyGoalCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Incolla il materiale, scegli la data e affronta una breve missione '
-          'ogni giorno. Gli errori decidono cosa ritorna.',
+          'Paste your material, choose the date, and take on one short mission '
+          'each day. Your mistakes decide what comes back.',
           style: TextStyle(color: Color(0xFFC7C6DE), height: 1.4),
         ),
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: onCreate,
           icon: const Icon(Icons.add),
-          label: const Text('Crea obiettivo verifica'),
+          label: const Text('Create exam goal'),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF7C7DF4),
             minimumSize: const Size.fromHeight(50),
@@ -525,13 +525,13 @@ class _GoalMissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final percent = (readiness * 100).round();
     final urgency = goal.daysRemaining == 0
-        ? 'Verifica oggi'
-        : '${goal.daysRemaining} giorni alla verifica';
+        ? 'Exam today'
+        : '${goal.daysRemaining} days until the exam';
     final message = goal.completedLoops == 0
-        ? 'Prima missione: costruiamo la base.'
+        ? 'First mission: let’s build the foundation.'
         : goal.accuracy < .67
-        ? 'Gli errori di ieri diventano il richiamo di oggi.'
-        : 'Sei in crescita: consolida prima che il ricordo cali.';
+        ? 'Yesterday’s mistakes become today’s recall.'
+        : 'You are improving: reinforce it before memory fades.';
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -567,7 +567,7 @@ class _GoalMissionCard extends StatelessWidget {
               ),
               IconButton(
                 onPressed: onEdit,
-                tooltip: 'Modifica obiettivo',
+                tooltip: 'Edit goal',
                 visualDensity: VisualDensity.compact,
                 color: const Color(0xFFC7D2FE),
                 icon: const Icon(Icons.edit_outlined, size: 20),
@@ -620,7 +620,7 @@ class _GoalMissionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'PRONTEZZA STIMATA',
+                      'ESTIMATED READINESS',
                       style: TextStyle(
                         color: Color(0xFFA5B4FC),
                         fontSize: 10,
@@ -630,8 +630,8 @@ class _GoalMissionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${goal.completedLoops} missioni • '
-                      '${goal.totalAnswers} richiami',
+                      '${goal.completedLoops} missions • '
+                      '${goal.totalAnswers} recalls',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -648,8 +648,8 @@ class _GoalMissionCard extends StatelessWidget {
             icon: const Icon(Icons.bolt),
             label: Text(
               goal.completedLoops == 0
-                  ? 'Avvia la prima missione'
-                  : 'Continua il piano di oggi',
+                  ? 'Start the first mission'
+                  : 'Continue today’s plan',
             ),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.white,
@@ -674,7 +674,7 @@ class _PreparingMissionDialog extends StatelessWidget {
         SizedBox(width: 18),
         Expanded(
           child: Text(
-            'Preparo una missione basata sui tuoi appunti...',
+            'Building a mission grounded in your notes...',
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -700,19 +700,17 @@ class _MissionResultDialog extends StatelessWidget {
       color: score / total >= .67 ? _mint : _orange,
       size: 42,
     ),
-    title: Text(
-      score / total >= .67 ? 'Missione completata' : 'Errori salvati',
-    ),
+    title: Text(score / total >= .67 ? 'Mission complete' : 'Mistakes saved'),
     content: Text(
-      'Hai richiamato $score concetti su $total.\n\n'
-      'Prontezza stimata: ${(readiness * 100).round()}%.\n'
-      'StudyLoop userà questo risultato per decidere il prossimo richiamo.',
+      'You recalled $score concepts out of $total.\n\n'
+      'Estimated readiness: ${(readiness * 100).round()}%.\n'
+      'StudyLoop will use this evidence to choose your next recall.',
       textAlign: TextAlign.center,
     ),
     actions: [
       FilledButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Torna al piano'),
+        child: const Text('Back to plan'),
       ),
     ],
   );
@@ -760,22 +758,22 @@ class _GoalEvidenceCard extends StatelessWidget {
             children: [
               _EvidenceChip(
                 icon: Icons.bolt,
-                text: '${goal.completedLoops} missioni',
+                text: '${goal.completedLoops} missions',
               ),
               _EvidenceChip(
                 icon: Icons.task_alt,
-                text: '${(goal.accuracy * 100).round()}% accuratezza',
+                text: '${(goal.accuracy * 100).round()}% accuracy',
               ),
               _EvidenceChip(
                 icon: Icons.replay,
-                text: '${goal.retryQuestions.length} da recuperare',
+                text: '${goal.retryQuestions.length} to rescue',
               ),
             ],
           ),
           if (goal.retryQuestions.isNotEmpty) ...[
             const SizedBox(height: 11),
             const Text(
-              'La prossima missione inizierà dagli errori ancora aperti.',
+              'The next mission will begin with unresolved mistakes.',
               style: TextStyle(color: _orange, fontWeight: FontWeight.w700),
             ),
           ],
@@ -854,7 +852,7 @@ class _HeroFocusCard extends StatelessWidget {
             Icon(Icons.auto_awesome, color: Color(0xFFFFD56A), size: 19),
             SizedBox(width: 7),
             Text(
-              'PROSSIMA MOSSA',
+              'NEXT MOVE',
               style: TextStyle(
                 color: Color(0xFFE0E7FF),
                 fontSize: 12,
@@ -893,7 +891,7 @@ class _HeroFocusCard extends StatelessWidget {
         FilledButton.icon(
           onPressed: onStart,
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Avvia il loop'),
+          label: const Text('Start the loop'),
           style: FilledButton.styleFrom(
             backgroundColor: Colors.white,
             foregroundColor: const Color(0xFF3730A3),
@@ -914,7 +912,7 @@ class LoopScreen extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
     children: [
       const Text(
-        'Il tuo Learning Loop',
+        'Your Learning Loop',
         style: TextStyle(
           color: _ink,
           fontSize: 28,
@@ -923,15 +921,15 @@ class LoopScreen extends StatelessWidget {
       ),
       const SizedBox(height: 6),
       const Text(
-        'Niente scatole nere: ogni priorità ha una ragione.',
+        'No black boxes: every priority has a reason.',
         style: TextStyle(color: _muted),
       ),
       const SizedBox(height: 22),
       const _LoopDiagram(),
       const SizedBox(height: 24),
       const _SectionTitle(
-        title: 'Perché questo ordine?',
-        subtitle: 'Il motore combina memoria, accuratezza e scadenza.',
+        title: 'Why this order?',
+        subtitle: 'The engine combines memory, accuracy, and due dates.',
       ),
       const SizedBox(height: 12),
       ...state.plan.map(
@@ -953,7 +951,7 @@ class AiCoachScreen extends StatefulWidget {
 }
 
 class _AiCoachScreenState extends State<AiCoachScreen> {
-  final _topic = TextEditingController(text: 'Frazioni equivalenti');
+  final _topic = TextEditingController(text: 'Equivalent fractions');
   final _notes = TextEditingController();
   late final TextEditingController _backendUrl;
   String _subjectId = 'math';
@@ -997,12 +995,12 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
       setState(() {
         _backendHealth = health;
         _backendMessage = health.configured
-            ? 'Connesso a ${health.model}: API key disponibile sul backend.'
-            : 'Backend raggiungibile, ma OPENAI_API_KEY non è configurata.';
+            ? 'Connected to ${health.model}: the backend has an API key.'
+            : 'Backend reached, but OPENAI_API_KEY is not configured.';
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() => _backendMessage = 'Connessione non riuscita: $error');
+      setState(() => _backendMessage = 'Connection failed: $error');
     } finally {
       if (mounted) setState(() => _testingBackend = false);
     }
@@ -1014,7 +1012,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     if (!mounted) return;
     setState(() {
       _backendHealth = null;
-      _backendMessage = 'Modalità demo offline attiva.';
+      _backendMessage = 'Offline demo mode is active.';
     });
   }
 
@@ -1082,7 +1080,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Trasforma un argomento in recupero attivo.',
+                  'Turn any topic into active recall.',
                   style: TextStyle(color: _muted),
                 ),
               ],
@@ -1099,21 +1097,21 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         child: ExpansionTile(
           leading: const Icon(Icons.dns_outlined, color: _indigo),
           title: const Text(
-            'Connessione GPT-5.6',
+            'GPT-5.6 connection',
             style: TextStyle(fontWeight: FontWeight.w900),
           ),
           subtitle: Text(
             _service.isConfigured
                 ? _service.baseUrl
-                : 'Demo offline • nessuna API key nell’app',
+                : 'Offline demo • no API key in the app',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           childrenPadding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
           children: [
             const Text(
-              'Inserisci l’indirizzo del backend StudyLoop. La API key resta '
-              'nel file .env del server e non viene mai salvata nell’APK.',
+              'Enter your StudyLoop backend address. The API key stays in the '
+              'server .env file and is never stored in the APK.',
               style: TextStyle(color: _muted, height: 1.35),
             ),
             const SizedBox(height: 12),
@@ -1123,7 +1121,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
               autocorrect: false,
               enableSuggestions: false,
               decoration: const InputDecoration(
-                labelText: 'Indirizzo backend',
+                labelText: 'Backend address',
                 hintText: 'http://192.168.1.20:8000',
                 prefixIcon: Icon(Icons.link),
               ),
@@ -1141,14 +1139,14 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           )
                         : const Icon(Icons.wifi_tethering),
                     label: Text(
-                      _testingBackend ? 'Verifico...' : 'Salva e verifica',
+                      _testingBackend ? 'Checking...' : 'Save and verify',
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton.outlined(
                   onPressed: _testingBackend ? null : _useOfflineMode,
-                  tooltip: 'Usa modalità offline',
+                  tooltip: 'Use offline mode',
                   icon: const Icon(Icons.offline_bolt_outlined),
                 ),
               ],
@@ -1174,7 +1172,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
       DropdownButtonFormField<String>(
         initialValue: _subjectId,
         decoration: const InputDecoration(
-          labelText: 'Materia',
+          labelText: 'Subject',
           prefixIcon: Icon(Icons.school_outlined),
         ),
         items: widget.state.subjects.values
@@ -1191,7 +1189,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
       TextField(
         controller: _topic,
         decoration: const InputDecoration(
-          labelText: 'Argomento',
+          labelText: 'Topic',
           prefixIcon: Icon(Icons.lightbulb_outline),
         ),
       ),
@@ -1201,9 +1199,9 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         minLines: 3,
         maxLines: 5,
         decoration: const InputDecoration(
-          labelText: 'Appunti o difficoltà (facoltativo)',
+          labelText: 'Notes or difficulty (optional)',
           alignLabelWithHint: true,
-          hintText: 'Es. confondo semplificazione e confronto...',
+          hintText: 'E.g. I confuse simplification and comparison...',
         ),
       ),
       const SizedBox(height: 14),
@@ -1215,13 +1213,15 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.auto_awesome),
-        label: Text(_loading ? 'Creo il pacchetto...' : 'Genera micro-lezione'),
+        label: Text(
+          _loading ? 'Building study pack...' : 'Generate micro-lesson',
+        ),
         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
       ),
       if (_error != null) ...[
         const SizedBox(height: 10),
         const Text(
-          'Backend AI non raggiungibile: è stato usato il fallback offline.',
+          'AI backend unavailable: StudyLoop used its offline fallback.',
           style: TextStyle(color: _orange, fontWeight: FontWeight.w700),
         ),
       ],
@@ -1244,7 +1244,7 @@ class ProgressScreen extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
     children: [
       const Text(
-        'Progressi che spiegano',
+        'Progress you can explain',
         style: TextStyle(
           color: _ink,
           fontSize: 28,
@@ -1253,7 +1253,7 @@ class ProgressScreen extends StatelessWidget {
       ),
       const SizedBox(height: 6),
       const Text(
-        'Non solo tempo: qui vedi cosa sta diventando più stabile.',
+        'Not just time: see what is becoming more stable.',
         style: TextStyle(color: _muted),
       ),
       const SizedBox(height: 22),
@@ -1262,7 +1262,7 @@ class ProgressScreen extends StatelessWidget {
           Expanded(
             child: _BigMetric(
               value: '${state.totalMinutes}',
-              label: 'minuti di focus',
+              label: 'focus minutes',
               icon: Icons.timer_outlined,
               color: _indigo,
             ),
@@ -1271,7 +1271,7 @@ class ProgressScreen extends StatelessWidget {
           Expanded(
             child: _BigMetric(
               value: '${state.streak}',
-              label: 'giorni di serie',
+              label: 'day streak',
               icon: Icons.local_fire_department_outlined,
               color: _orange,
             ),
@@ -1307,7 +1307,7 @@ class ProgressScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Livello ${state.level} • ${state.xp} XP',
+                      'Level ${state.level} • ${state.xp} XP',
                       style: const TextStyle(
                         color: _ink,
                         fontWeight: FontWeight.w900,
@@ -1323,7 +1323,7 @@ class ProgressScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      '${300 - state.xpInLevel} XP al prossimo livello',
+                      '${300 - state.xpInLevel} XP to next level',
                       style: const TextStyle(color: _muted, fontSize: 11),
                     ),
                   ],
@@ -1342,8 +1342,8 @@ class ProgressScreen extends StatelessWidget {
       ],
       const SizedBox(height: 24),
       const _SectionTitle(
-        title: 'Padronanza',
-        subtitle: 'Si aggiorna dopo ogni risposta e guida il prossimo loop.',
+        title: 'Mastery',
+        subtitle: 'Updates after every answer and guides the next loop.',
       ),
       const SizedBox(height: 12),
       ...state.plan.map(
@@ -1354,8 +1354,8 @@ class ProgressScreen extends StatelessWidget {
       ),
       const SizedBox(height: 22),
       const _SectionTitle(
-        title: 'Attività recente',
-        subtitle: 'Le sessioni restano salvate sul dispositivo.',
+        title: 'Recent activity',
+        subtitle: 'Sessions remain stored on this device.',
       ),
       const SizedBox(height: 12),
       if (state.sessions.isEmpty)
@@ -1408,12 +1408,12 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     setState(() {
       _subjectId = 'science';
       _examDate = DateTime.now().add(const Duration(days: 7));
-      _topic.text = 'Fotosintesi clorofilliana';
+      _topic.text = 'Photosynthesis';
       _material.text =
-          'La fotosintesi avviene nei cloroplasti. La clorofilla cattura '
-          'l’energia della luce. La pianta usa acqua e anidride carbonica '
-          'per produrre glucosio e libera ossigeno. Il glucosio conserva '
-          'energia chimica utile alla pianta.';
+          'Photosynthesis happens in chloroplasts. Chlorophyll captures '
+          'light energy. A plant uses water and carbon dioxide to produce '
+          'glucose and releases oxygen. Glucose stores chemical energy the '
+          'plant can use.';
     });
   }
 
@@ -1423,7 +1423,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       initialDate: _examDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      helpText: 'Quando hai la verifica?',
+      helpText: 'When is your exam?',
     );
     if (value != null) setState(() => _examDate = value);
   }
@@ -1435,7 +1435,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Inserisci un argomento e almeno 30 caratteri di appunti.',
+            'Enter a topic and at least 30 characters of study notes.',
           ),
         ),
       );
@@ -1471,7 +1471,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         '${_examDate.day.toString().padLeft(2, '0')}/'
         '${_examDate.month.toString().padLeft(2, '0')}/${_examDate.year}';
     return Scaffold(
-      appBar: AppBar(title: const Text('Obiettivo verifica')),
+      appBar: AppBar(title: const Text('Exam goal')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 32),
@@ -1489,8 +1489,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   SizedBox(width: 11),
                   Expanded(
                     child: Text(
-                      'Incolla ciò che devi sapere. StudyLoop lo trasforma in '
-                      'micro-missioni e ripropone ciò che ricordi meno.',
+                      'Paste what you need to learn. StudyLoop turns it into '
+                      'micro-missions and brings back what you recall least.',
                       style: TextStyle(
                         height: 1.4,
                         fontWeight: FontWeight.w700,
@@ -1504,7 +1504,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             OutlinedButton.icon(
               onPressed: _loadDemo,
               icon: const Icon(Icons.science_outlined),
-              label: const Text('Carica esempio demo completo'),
+              label: const Text('Load complete demo example'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
               ),
@@ -1513,7 +1513,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             DropdownButtonFormField<String>(
               initialValue: _subjectId,
               decoration: const InputDecoration(
-                labelText: 'Materia',
+                labelText: 'Subject',
                 prefixIcon: Icon(Icons.school_outlined),
               ),
               items: widget.state.subjects.values
@@ -1532,8 +1532,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               controller: _topic,
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
-                labelText: 'Argomento della verifica',
-                hintText: 'Es. Fotosintesi clorofilliana',
+                labelText: 'Exam topic',
+                hintText: 'E.g. Photosynthesis',
                 prefixIcon: Icon(Icons.flag_outlined),
               ),
             ),
@@ -1543,7 +1543,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               borderRadius: BorderRadius.circular(16),
               child: InputDecorator(
                 decoration: const InputDecoration(
-                  labelText: 'Data della verifica',
+                  labelText: 'Exam date',
                   prefixIcon: Icon(Icons.event_outlined),
                 ),
                 child: Text(
@@ -1560,10 +1560,10 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               maxLength: 3000,
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
-                labelText: 'Appunti o testo da studiare',
+                labelText: 'Notes or study material',
                 hintText:
-                    'Incolla un riassunto, gli appunti della lezione o il '
-                    'testo più importante...',
+                    'Paste a summary, lesson notes, or the most important '
+                    'material here...',
                 alignLabelWithHint: true,
               ),
             ),
@@ -1571,7 +1571,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             FilledButton.icon(
               onPressed: _save,
               icon: const Icon(Icons.rocket_launch_outlined),
-              label: const Text('Crea il mio piano'),
+              label: const Text('Create my plan'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
               ),
@@ -1583,7 +1583,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   await widget.state.removeGoal();
                   if (context.mounted) Navigator.of(context).pop();
                 },
-                child: const Text('Elimina questo obiettivo'),
+                child: const Text('Delete this goal'),
               ),
             ],
           ],
@@ -1709,8 +1709,8 @@ class _FocusScreenState extends State<FocusScreen> {
                   children: [
                     Text(
                       widget.grounded
-                          ? 'MISSIONE DAI TUOI APPUNTI'
-                          : 'MICRO-LEZIONE',
+                          ? 'MISSION FROM YOUR NOTES'
+                          : 'MICRO-LESSON',
                       style: const TextStyle(
                         color: Color(0xFFA5B4FC),
                         fontSize: 11,
@@ -1757,8 +1757,8 @@ class _FocusScreenState extends State<FocusScreen> {
             ),
             const SizedBox(height: 28),
             const Text(
-              'Una cosa alla volta. Alla fine, tre domande renderanno '
-              'visibile ciò che hai davvero consolidato.',
+              'One thing at a time. At the end, three questions will reveal '
+              'what you have actually strengthened.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFFB8B7D4), height: 1.45),
             ),
@@ -1766,7 +1766,7 @@ class _FocusScreenState extends State<FocusScreen> {
             FilledButton.icon(
               onPressed: _toggle,
               icon: Icon(_running ? Icons.pause : Icons.play_arrow),
-              label: Text(_running ? 'Metti in pausa' : 'Avvia focus'),
+              label: Text(_running ? 'Pause focus' : 'Start focus'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(54),
                 backgroundColor: const Color(0xFF7C7DF4),
@@ -1778,7 +1778,7 @@ class _FocusScreenState extends State<FocusScreen> {
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFC7D2FE),
               ),
-              child: const Text('Ho finito: verifica ciò che ricordo'),
+              child: const Text('I’m done: test what I remember'),
             ),
           ],
         ),
@@ -1848,7 +1848,7 @@ class _QuizScreenState extends State<QuizScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'DOMANDA ${_index + 1} DI ${widget.questions.length}',
+                    'QUESTION ${_index + 1} OF ${widget.questions.length}',
                     style: const TextStyle(
                       color: _indigo,
                       fontWeight: FontWeight.w800,
@@ -1948,7 +1948,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      correct ? 'Ricordo consolidato' : 'Errore utile',
+                      correct ? 'Memory strengthened' : 'Useful mistake',
                       style: TextStyle(
                         color: correct ? _mint : Colors.redAccent,
                         fontWeight: FontWeight.w900,
@@ -1969,9 +1969,9 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Text(
                 _checked
                     ? (_index == widget.questions.length - 1
-                          ? 'Completa il loop'
-                          : 'Prossima domanda')
-                    : 'Verifica risposta',
+                          ? 'Complete the loop'
+                          : 'Next question')
+                    : 'Check answer',
               ),
             ),
           ],
@@ -2014,7 +2014,7 @@ class _StudyPackCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           const Text(
-            'MICRO-LEZIONE',
+            'MICRO-LESSON',
             style: TextStyle(
               color: _muted,
               fontSize: 11,
@@ -2044,7 +2044,7 @@ class _StudyPackCard extends StatelessWidget {
           FilledButton.icon(
             onPressed: onStart,
             icon: const Icon(Icons.quiz_outlined),
-            label: Text('Inizia ${pack.questions.length} domande'),
+            label: Text('Start ${pack.questions.length} questions'),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
             ),
@@ -2073,11 +2073,11 @@ class _LoopDiagram extends StatelessWidget {
           ),
           _LoopArrow(),
           Expanded(
-            child: _LoopNode(icon: Icons.tune, label: 'Adatta'),
+            child: _LoopNode(icon: Icons.tune, label: 'Adapt'),
           ),
           _LoopArrow(),
           Expanded(
-            child: _LoopNode(icon: Icons.event_repeat, label: 'Ripeti'),
+            child: _LoopNode(icon: Icons.event_repeat, label: 'Repeat'),
           ),
         ],
       ),
@@ -2275,12 +2275,12 @@ class _MasteryCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '${(subject.accuracy * 100).round()}% accuratezza',
+                '${(subject.accuracy * 100).round()}% accuracy',
                 style: const TextStyle(color: _muted, fontSize: 12),
               ),
               const Spacer(),
               Text(
-                '${subject.attempts} risposte',
+                '${subject.attempts} answers',
                 style: const TextStyle(color: _muted, fontSize: 12),
               ),
             ],
@@ -2496,7 +2496,7 @@ class _AiStatusChip extends StatelessWidget {
     final color = live ? _mint : (configured ? _indigo : _orange);
     final label = live
         ? 'GPT-5.6 Sol'
-        : (configured ? 'Backend salvato' : 'Demo offline');
+        : (configured ? 'Backend saved' : 'Offline demo');
     final icon = live
         ? Icons.cloud_done_outlined
         : (configured ? Icons.dns_outlined : Icons.offline_bolt_outlined);
@@ -2542,8 +2542,8 @@ class _PrivacyCard extends StatelessWidget {
         SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Privacy by design: niente chiavi API nell’APK. Il backend riceve '
-            'solo materia, livello e appunti inseriti volontariamente.',
+            'Privacy by design: no API keys in the APK. The backend receives '
+            'only the subject, learning level, and notes you choose to send.',
             style: TextStyle(height: 1.35),
           ),
         ),
@@ -2564,7 +2564,7 @@ class _EmptySessions extends StatelessWidget {
           Icon(Icons.history, color: _muted, size: 36),
           SizedBox(height: 10),
           Text(
-            'Completa il primo loop per vedere qui la tua storia.',
+            'Complete your first loop to see your history here.',
             textAlign: TextAlign.center,
             style: TextStyle(color: _muted),
           ),
